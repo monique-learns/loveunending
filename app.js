@@ -71,6 +71,17 @@ function startScanner() {
         return;
       }
       Quagga.start();
+
+      // 🛠 Fix camera video size overflow
+      setTimeout(() => {
+        const video = document.querySelector("#scanner video");
+        if (video) {
+          video.style.width = "100%";
+          video.style.height = "100%";
+          video.style.objectFit = "cover";
+        }
+      }, 500);
+
       scannerContainer.scrollIntoView({ behavior: "smooth" });
       document.getElementById("scanStatus").innerText = "Scanner active...";
     }

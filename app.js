@@ -1,11 +1,13 @@
-const endpoint = 'YOUR_APPS_SCRIPT_URL';
+const endpoint =
+  "https://script.google.com/macros/s/AKfycbwWDNkCOdAE7rLsuCKFa901Dgnc_0SVkL18hMatTaHnEBnPe-nmkepDERr_t_pJTaaTiw/exec";
 
 function lookup() {
   const ticket = document.getElementById("ticketInput").value;
   fetch(`${endpoint}?ticket=${ticket}`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.error) return document.getElementById("result").innerText = data.error;
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.error)
+        return (document.getElementById("result").innerText = data.error);
       document.getElementById("result").innerHTML = `
         <p>Name: ${data.name}</p>
         <p>Status: ${data.status}</p>
@@ -21,8 +23,8 @@ function lookup() {
 
 function update(ticket, action) {
   fetch(endpoint, {
-    method: 'POST',
-    body: new URLSearchParams({ ticket, action })
+    method: "POST",
+    body: new URLSearchParams({ ticket, action }),
   }).then(() => lookup());
 }
 

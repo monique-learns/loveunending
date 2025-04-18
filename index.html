@@ -8,15 +8,44 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
   </head>
   <body>
-    <h1>Scan or Enter Ticket</h1>
-    <input type="text" id="ticketInput" placeholder="Enter Ticket Number" />
-    <button onclick="lookup()">Check Ticket</button>
-    <button onclick="startScanner()">Scan Barcode</button>
+    <h1 style="text-align: center">Scan or Enter Ticket</h1>
+    <div style="text-align: center; margin: 1rem">
+      <input
+        type="text"
+        id="ticketInput"
+        placeholder="Enter Ticket Number"
+        style="width: 90%; padding: 0.5rem; font-size: 1rem"
+      />
+      <div style="margin-top: 1rem">
+        <button
+          onclick="lookup()"
+          style="padding: 0.5rem 1rem; font-size: 1rem"
+        >
+          Check Ticket
+        </button>
+        <button
+          onclick="startScanner()"
+          style="padding: 0.5rem 1rem; font-size: 1rem"
+        >
+          Scan Barcode
+        </button>
+      </div>
+    </div>
     <div
       id="scanner"
-      style="width: 100%; max-width: 400px; height: 200px"
+      style="
+        width: 100%;
+        max-width: 280px;
+        height: 120px;
+        margin: 1rem auto;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+      "
     ></div>
-    <div id="result"></div>
+    <p id="scanStatus" style="text-align: center; font-size: 0.9rem">
+      Waiting for scan...
+    </p>
+    <div id="result" style="padding: 1rem"></div>
     <script src="app.js"></script>
   </body>
 </html>

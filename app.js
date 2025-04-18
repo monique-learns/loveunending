@@ -3,21 +3,26 @@ const endpoint =
 
 function lookup() {
   const ticket = document.getElementById("ticketInput").value;
+  document.getElementById("scanStatus").innerText = "Looking up ticket...";
   fetch(`${endpoint}?ticket=${ticket}`)
     .then((res) => res.json())
     .then((data) => {
-      if (data.error)
-        return (document.getElementById("result").innerText = data.error);
+      if (data.error) {
+        document.getElementById("result").innerText = data.error;
+        document.getElementById("scanStatus").innerText = "Ticket not found.";
+        return;
+      }
       document.getElementById("result").innerHTML = `
-        <p>Name: ${data.name}</p>
-        <p>Status: ${data.status}</p>
-        <p>Admitted: ${data.admitted}</p>
-        <p>
+        <p><strong>Name:</strong> ${data.name}</p>
+        <p><strong>Status:</strong> ${data.status}</p>
+        <p><strong>Admitted:</strong> ${data.admitted}</p>
+        <div style="margin-top: 1rem;">
           <button onclick="update('${ticket}', 'pay')">Mark as Paid</button>
           <button onclick="update('${ticket}', 'admit')">Admit</button>
           <button onclick="update('${ticket}', 'cancel')">Cancel</button>
-        </p>
+        </div>
       `;
+      document.getElementById("scanStatus").innerText = "Ticket info loaded.";
     });
 }
 
@@ -30,7 +35,8 @@ function update(ticket, action) {
 
 function startScanner() {
   const scannerContainer = document.getElementById("scanner");
-  scannerContainer.innerHTML = ""; // Clear previous scan
+  scannerContainer.innerHTML = "";
+  document.getElementById("scanStatus").innerText = "Starting scanner...";
 
   Quagga.init(
     {
@@ -39,8 +45,14 @@ function startScanner() {
         type: "LiveStream",
         target: scannerContainer,
         constraints: {
-          facingMode: "environment", // Use back camera on phone
+          facingMode: "environment",
+          width: { min: 320, ideal: 640, max: 1280 },
+          height: { min: 240, ideal: 480, max: 720 },
         },
+      },
+      locator: {
+        patchSize: "medium",
+        halfSample: true,
       },
       decoder: {
         readers: [
@@ -55,9 +67,12 @@ function startScanner() {
     function (err) {
       if (err) {
         console.error(err);
+        alert("Camera error: " + err.message);
         return;
       }
       Quagga.start();
+      scannerContainer.scrollIntoView({ behavior: "smooth" });
+      document.getElementById("scanStatus").innerText = "Scanner active...";
     }
   );
 
@@ -66,6 +81,7 @@ function startScanner() {
     document.getElementById("ticketInput").value = code;
     lookup();
     Quagga.stop();
-    scannerContainer.innerHTML = ""; // Hide scanner preview
+    scannerContainer.innerHTML = "";
+    document.getElementById("scanStatus").innerText = "Scan complete.";
   });
 }

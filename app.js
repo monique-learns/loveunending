@@ -1,5 +1,6 @@
 const endpoint =
   "https://script.google.com/macros/s/AKfycbwWDNkCOdAE7rLsuCKFa901Dgnc_0SVkL18hMatTaHnEBnPe-nmkepDERr_t_pJTaaTiw/exec";
+let scannerActive = false;
 
 function lookup() {
   const ticket = document.getElementById("ticketInput").value;
@@ -35,6 +36,17 @@ function update(ticket, action) {
 
 function startScanner() {
   const scannerContainer = document.getElementById("scanner");
+  const scanButton = document.querySelector('button[onclick="startScanner()"]');
+
+  if (scannerActive) {
+    Quagga.stop();
+    scannerContainer.innerHTML = "";
+    document.getElementById("scanStatus").innerText = "Scanner stopped.";
+    scanButton.textContent = "Scan Barcode";
+    scannerActive = false;
+    return;
+  }
+
   scannerContainer.innerHTML = "";
   document.getElementById("scanStatus").innerText = "Starting scanner...";
 
@@ -71,8 +83,10 @@ function startScanner() {
         return;
       }
       Quagga.start();
+      scannerActive = true;
+      scanButton.textContent = "Stop Scanning";
 
-      // 🛠 Fix camera video size overflow
+      // Fix camera video size overflow
       setTimeout(() => {
         const video = document.querySelector("#scanner video");
         if (video) {
@@ -93,6 +107,8 @@ function startScanner() {
     lookup();
     Quagga.stop();
     scannerContainer.innerHTML = "";
+    scanButton.textContent = "Scan Barcode";
     document.getElementById("scanStatus").innerText = "Scan complete.";
+    scannerActive = false;
   });
 }

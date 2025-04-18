@@ -1,6 +1,7 @@
 const endpoint =
   "https://script.google.com/macros/s/AKfycbwWDNkCOdAE7rLsuCKFa901Dgnc_0SVkL18hMatTaHnEBnPe-nmkepDERr_t_pJTaaTiw/exec";
 let scannerActive = false;
+let html5QrCode;
 
 function lookup() {
   const ticket = document.getElementById("ticketInput").value;
@@ -34,76 +35,48 @@ function update(ticket, action) {
   }).then(() => lookup());
 }
 
-function startScanner() {
+function toggleScanner() {
+  const scanButton = document.getElementById("scanButton");
   const scannerContainer = document.getElementById("scanner");
-  const scanButton = document.querySelector('button[onclick="startScanner()"]');
 
   if (scannerActive) {
-    Quagga.stop();
-    scannerContainer.innerHTML = "";
-    document.getElementById("scanStatus").innerText = "Scanner stopped.";
-    scanButton.textContent = "Scan Barcode";
-    scannerActive = false;
+    html5QrCode.stop().then(() => {
+      scannerContainer.innerHTML = "";
+      scannerActive = false;
+      scanButton.textContent = "Scan Barcode";
+      document.getElementById("scanStatus").innerText = "Scanner stopped.";
+    });
     return;
   }
 
-  scannerContainer.innerHTML = "";
-  document.getElementById("scanStatus").innerText = "Starting scanner...";
+  html5QrCode = new Html5Qrcode("scanner");
 
-  Quagga.init(
-    {
-      inputStream: {
-        name: "Live",
-        type: "LiveStream",
-        target: scannerContainer,
-        constraints: {
-          facingMode: "environment",
-          width: { min: 320, ideal: 640, max: 1280 },
-          height: { min: 240, ideal: 480, max: 720 },
-        },
-      },
-      locator: {
-        patchSize: "medium",
-        halfSample: true,
-      },
-      decoder: {
-        readers: ["code_39_reader"],
-      },
-      locate: true,
-    },
-    function (err) {
-      if (err) {
-        console.error(err);
-        alert("Camera error: " + err.message);
-        return;
-      }
-      Quagga.start();
-      scannerActive = true;
-      scanButton.textContent = "Stop Scanning";
-
-      // Fix camera video size overflow
-      setTimeout(() => {
-        const video = document.querySelector("#scanner video");
-        if (video) {
-          video.style.width = "100%";
-          video.style.height = "100%";
-          video.style.objectFit = "cover";
-        }
-      }, 500);
-
-      scannerContainer.scrollIntoView({ behavior: "smooth" });
-      document.getElementById("scanStatus").innerText = "Scanner active...";
+  Html5Qrcode.getCameras().then((cameras) => {
+    if (cameras && cameras.length) {
+      html5QrCode
+        .start(
+          { facingMode: "environment" },
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 100 },
+          },
+          (code) => {
+            document.getElementById("ticketInput").value = code;
+            lookup();
+            toggleScanner();
+          },
+          (errorMessage) => {
+            document.getElementById("scanStatus").innerText = "Scanning...";
+          }
+        )
+        .then(() => {
+          scannerActive = true;
+          scanButton.textContent = "Stop Scanning";
+          document.getElementById("scanStatus").innerText = "Scanner active...";
+        })
+        .catch((err) => {
+          document.getElementById("scanStatus").innerText = "Camera error.";
+        });
     }
-  );
-
-  Quagga.onDetected((result) => {
-    const code = result.codeResult.code;
-    document.getElementById("ticketInput").value = code;
-    lookup();
-    Quagga.stop();
-    scannerContainer.innerHTML = "";
-    scanButton.textContent = "Scan Barcode";
-    document.getElementById("scanStatus").innerText = "Scan complete.";
-    scannerActive = false;
   });
 }

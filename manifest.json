@@ -1,7 +1,7 @@
 {
   "name": "Ticket Scanner",
   "short_name": "Scanner",
-  "start_url": "/loveunending",
+  "start_url": "loveunending/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",

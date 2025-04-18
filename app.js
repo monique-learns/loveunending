@@ -80,3 +80,7 @@ function toggleScanner() {
     }
   });
 }
+
+// Register functions globally for HTML inline onclick
+window.toggleScanner = toggleScanner;
+window.lookup = lookup;

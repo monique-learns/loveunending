@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Ticket Scanner</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="manifest.json">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-</head>
-<body>
-  <h1>Scan or Enter Ticket</h1>
-  <input type="text" id="ticketInput" placeholder="Enter Ticket Number">
-  <button onclick="lookup()">Check Ticket</button>
-  <button onclick="startScanner()">Scan Barcode</button>
-  <div id="result"></div>
-  <script src="app.js"></script>
-</body>
+  <head>
+    <title>Ticket Scanner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="manifest.json" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+  </head>
+  <body>
+    <h1>Scan or Enter Ticket</h1>
+    <input type="text" id="ticketInput" placeholder="Enter Ticket Number" />
+    <button onclick="lookup()">Check Ticket</button>
+    <button onclick="startScanner()">Scan Barcode</button>
+    <div
+      id="scanner"
+      style="width: 100%; max-width: 400px; height: 200px"
+    ></div>
+    <div id="result"></div>
+    <script src="app.js"></script>
+  </body>
 </html>

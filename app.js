@@ -5,15 +5,30 @@ let html5QrCode;
 
 function loadCameras() {
   const select = document.getElementById("cameraSelect");
-  Html5Qrcode.getCameras().then((devices) => {
-    select.innerHTML = "";
-    devices.forEach((cam) => {
-      const option = document.createElement("option");
-      option.value = cam.id;
-      option.text = cam.label || `Camera ${select.length + 1}`;
-      select.appendChild(option);
+  if (!select) {
+    console.error("Camera select element not found.");
+    return;
+  }
+
+  Html5Qrcode.getCameras()
+    .then((devices) => {
+      console.log("Cameras found:", devices);
+      if (!devices.length) {
+        document.getElementById("scanStatus").innerText = "No cameras found.";
+        return;
+      }
+      devices.forEach((cam) => {
+        const option = document.createElement("option");
+        option.value = cam.id;
+        option.text = cam.label || `Camera ${select.length + 1}`;
+        select.appendChild(option);
+      });
+    })
+    .catch((err) => {
+      console.error("Error getting cameras:", err);
+      document.getElementById("scanStatus").innerText =
+        "Camera access denied or not available.";
     });
-  });
 }
 
 function lookup() {

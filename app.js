@@ -114,7 +114,8 @@ function toggleScanner() {
         toggleScanner(); // Automatically stop after success
       },
       (errorMessage) => {
-        document.getElementById("consoling").innerText = "start errored";
+        document.getElementById("consoling").innerText =
+          "start errored" + errorMessage;
         setScanStatus("Scanning...");
       }
     )

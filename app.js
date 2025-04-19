@@ -59,6 +59,8 @@ function toggleScanner() {
           {
             fps: 10,
             qrbox: { width: 250, height: 250 },
+            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+            formatsToSupport: [Html5QrcodeSupportedFormats.CODE_39],
           },
           (decodedText) => {
             document.getElementById("ticketInput").value = decodedText;

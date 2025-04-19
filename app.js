@@ -88,8 +88,6 @@ function toggleScanner() {
 
   html5QrCode = new Html5Qrcode("reader");
 
-  document.getElementById("consoling").innerText = "Reader created";
-
   html5QrCode
     .start(
       selectedCameraId,
@@ -97,15 +95,7 @@ function toggleScanner() {
         fps: 10,
         qrbox: { width: 250, height: 100 },
         supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-        formatsToSupport: [
-          Html5QrcodeSupportedFormats.CODE_128,
-          Html5QrcodeSupportedFormats.CODE_39,
-          Html5QrcodeSupportedFormats.EAN_13,
-          Html5QrcodeSupportedFormats.EAN_8,
-          Html5QrcodeSupportedFormats.UPC_A,
-          Html5QrcodeSupportedFormats.UPC_E,
-          Html5QrcodeSupportedFormats.ITF,
-        ],
+        formatsToSupport: [Html5QrcodeSupportedFormats.CODE_39],
       },
       (decodedText) => {
         document.getElementById("consoling").innerText = "got value";
@@ -114,8 +104,6 @@ function toggleScanner() {
         toggleScanner(); // Automatically stop after success
       },
       (errorMessage) => {
-        document.getElementById("consoling").innerText =
-          "start errored" + errorMessage;
         setScanStatus("Scanning...");
       }
     )

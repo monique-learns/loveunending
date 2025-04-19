@@ -60,24 +60,39 @@ function lookup() {
       let buttonsHtml = "";
 
       if (admittedFlag) {
-        buttonsHtml = ""; // No buttons if already admitted
-      } else if (statusUpper === "PAID") {
-        buttonsHtml = `
-          <button 
-            onclick="update('${ticketNumber}', 'admit')" 
-            style="background-color: #5cb85c; color: white;"
-          >
-            Admit
-          </button>
-        `;
+        // ❌ No buttons if already admitted
+        buttonsHtml = "";
       } else {
         const isBlocked =
           statusUpper === "RETURNED" || statusUpper === "AVAILABLE";
         const needsPayment =
           statusUpper === "NOT PAID" ||
           statusUpper === "RESERVED - ASK FOR PAYMENT";
+        const reservedLetIn =
+          statusUpper === "RESERVED - LET IN WITHOUT PAYMENT";
+        const isPaid = statusUpper === "PAID";
 
-        buttonsHtml = `
+        if (isPaid) {
+          buttonsHtml = `
+            <button 
+              onclick="update('${ticketNumber}', 'admit')" 
+              style="background-color: #5cb85c; color: white;"
+            >
+              Admit
+            </button>
+          `;
+        } else {
+          const admitBtnStyle =
+            statusUpper === "PAID" || reservedLetIn
+              ? "background-color: #5cb85c; color: white;"
+              : "";
+
+          const admitDisabled =
+            isBlocked || needsPayment
+              ? "disabled style='opacity: 0.6; cursor: not-allowed;'"
+              : "";
+
+          buttonsHtml = `
           <button onclick="update('${ticketNumber}', 'pay')"
             ${
               isBlocked
@@ -92,11 +107,8 @@ function lookup() {
           </button>
 
           <button onclick="update('${ticketNumber}', 'admit')"
-            ${
-              needsPayment || isBlocked
-                ? "disabled style='opacity: 0.6; cursor: not-allowed;'"
-                : "style='background-color: #5cb85c; color: white;'"
-            }
+            ${admitDisabled}
+            style="${admitBtnStyle}"
           >
             Admit
           </button>
@@ -105,6 +117,7 @@ function lookup() {
             Return Ticket
           </button>
         `;
+        }
       }
 
       resultEl.innerHTML = `

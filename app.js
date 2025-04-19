@@ -3,6 +3,19 @@ const endpoint =
 let scannerActive = false;
 let html5QrCode;
 
+function loadCameras() {
+  const select = document.getElementById("cameraSelect");
+  Html5Qrcode.getCameras().then((devices) => {
+    select.innerHTML = "";
+    devices.forEach((cam) => {
+      const option = document.createElement("option");
+      option.value = cam.id;
+      option.text = cam.label || `Camera ${select.length + 1}`;
+      select.appendChild(option);
+    });
+  });
+}
+
 function lookup() {
   const ticket = document.getElementById("ticketInput").value;
   document.getElementById("scanStatus").innerText = "Looking up ticket...";
@@ -64,7 +77,7 @@ function toggleScanner() {
         camId,
         {
           fps: 10,
-          qrbox: { width: 250, height: 150 },
+          qrbox: { width: 250, height: 100 },
           supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
           formatsToSupport: [
             Html5QrcodeSupportedFormats.CODE_128,
@@ -110,6 +123,9 @@ function toggleScanner() {
       });
   });
 }
+
+// Load camera options on page load
+window.onload = loadCameras;
 
 // Allow HTML to call functions
 window.toggleScanner = toggleScanner;

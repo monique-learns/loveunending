@@ -1,5 +1,6 @@
 const endpoint =
   "https://script.google.com/macros/s/AKfycbx0BC7Ngr7tBknjnbAG3m5kj_PqCSi02IPjBxsCHVKvS2U0xxl_eYtMTcC2YcrD_LR8gA/exec";
+
 function setLookupStatus(message) {
   const statusContainer = document.getElementById("statusContainer");
   const statusEl = document.getElementById("lookupStatus");
@@ -50,43 +51,61 @@ function lookup() {
       } = data;
 
       const admittedFlag = admitted === "true" || admitted === true;
-      const needsPayment =
-        status === "NOT PAID" ||
-        status === "RESERVED - ask for payment" ||
-        status === "RETURNED" ||
-        status === "AVAILABLE";
+      const statusUpper = status.toUpperCase();
 
       const warningMessage = admittedFlag
         ? `<p style="color: red; font-weight: bold;">This ticket has already been admitted.</p>`
         : "";
 
-      const admitButton = `
-        <button onclick="update('${ticketNumber}', 'admit')"
-          ${
-            needsPayment
-              ? "disabled style='opacity: 0.6; cursor: not-allowed;'"
-              : ""
-          }
-        >
-          Admit
-        </button>
-      `;
+      let buttonsHtml = "";
 
-      const payButton = `
-        <button onclick="update('${ticketNumber}', 'pay')" 
-          style="${
-            needsPayment ? "background-color: #d9534f; color: white;" : ""
-          }"
-        >
-          Mark as Paid
-        </button>
-      `;
+      if (admittedFlag) {
+        buttonsHtml = ""; // No buttons if already admitted
+      } else if (statusUpper === "PAID") {
+        buttonsHtml = `
+          <button 
+            onclick="update('${ticketNumber}', 'admit')" 
+            style="background-color: #5cb85c; color: white;"
+          >
+            Admit
+          </button>
+        `;
+      } else {
+        const isBlocked =
+          statusUpper === "RETURNED" || statusUpper === "AVAILABLE";
+        const needsPayment =
+          statusUpper === "NOT PAID" ||
+          statusUpper === "RESERVED - ASK FOR PAYMENT";
 
-      const returnButton = `
-        <button onclick="update('${ticketNumber}', 'return')">
-          Return Ticket
-        </button>
-      `;
+        buttonsHtml = `
+          <button onclick="update('${ticketNumber}', 'pay')"
+            ${
+              isBlocked
+                ? "disabled style='opacity: 0.6; cursor: not-allowed;'"
+                : ""
+            }
+            style="${
+              needsPayment ? "background-color: #d9534f; color: white;" : ""
+            }"
+          >
+            Mark as Paid
+          </button>
+
+          <button onclick="update('${ticketNumber}', 'admit')"
+            ${
+              needsPayment || isBlocked
+                ? "disabled style='opacity: 0.6; cursor: not-allowed;'"
+                : ""
+            }
+          >
+            Admit
+          </button>
+
+          <button onclick="update('${ticketNumber}', 'return')">
+            Return Ticket
+          </button>
+        `;
+      }
 
       resultEl.innerHTML = `
         <p><strong>Ticket Number:</strong> ${ticketNumber}</p>
@@ -97,9 +116,7 @@ function lookup() {
         <p><strong>Admitted:</strong> ${admittedFlag ? "Yes" : "No"}</p>
         ${warningMessage}
         <div style="margin-top: 1rem;">
-          ${payButton}
-          ${admitButton}
-          ${returnButton}
+          ${buttonsHtml}
         </div>
       `;
     })

@@ -1,84 +1,64 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Ticket Scanner</title>
+    <title>Ticket Lookup</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <base href="/loveunending/" />
-    <link rel="manifest" href="manifest.json" />
-    <script
-      src="https://unpkg.com/html5-qrcode@2.3.2/html5-qrcode.min.js"
-      type="text/javascript"
-      defer
-    ></script>
-    <script src="app.js" defer></script>
     <style>
-      #reader__scan_region > div {
-        border: 2px solid white;
-        border-radius: 8px;
-        transition: border-color 0.3s ease;
+      body {
+        font-family: sans-serif;
+        padding: 1rem;
       }
 
-      /* Add a success state */
-      .scan-success {
-        border-color: green !important;
+      .spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #ccc;
+        border-top: 2px solid green;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        vertical-align: middle;
+        margin-left: 0.5rem;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      input,
+      button {
+        font-size: 1rem;
+        padding: 0.5rem;
+        margin: 0.5rem 0;
+        width: 100%;
+        max-width: 400px;
+      }
+
+      #result {
+        padding: 1rem;
+        margin-top: 1rem;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        max-width: 400px;
       }
     </style>
   </head>
   <body>
-    <h1 style="text-align: center">Scan or Enter Ticket 1.32</h1>
-    <div style="text-align: center; margin: 1rem">
-      <input
-        type="text"
-        id="ticketInput"
-        placeholder="Enter Ticket Number"
-        style="width: 90%; padding: 0.5rem; font-size: 1rem"
-      />
-      <div style="margin-top: 1rem">
-        <button
-          onclick="lookup()"
-          style="padding: 0.5rem 1rem; font-size: 1rem"
-        >
-          Check Ticket
-        </button>
-      </div>
-      <div style="margin-top: 1rem">
-        <select
-          id="cameraSelect"
-          style="
-            margin: 1rem auto;
-            display: block;
-            font-size: 1rem;
-            padding: 0.4rem;
-          "
-        ></select>
-        <button
-          onclick="toggleScanner()"
-          style="padding: 0.5rem 1rem; font-size: 1rem"
-          id="scanButton"
-        >
-          Scan Barcode
-        </button>
-      </div>
+    <h1>Ticket Lookup</h1>
+
+    <input type="text" id="ticketInput" placeholder="Enter Ticket Number" />
+
+    <button onclick="lookup()">Check Ticket</button>
+
+    <div style="margin-top: 1rem">
+      <p id="lookupStatus" style="display: inline-block">Ready</p>
+      <span id="loadingSpinner" class="spinner" style="display: none"></span>
     </div>
-    <div
-      id="reader"
-      style="
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        max-width: 280px;
-        margin: 1rem auto;
-        position: relative;
-      "
-    ></div>
-    <p id="scanStatus" style="text-align: center; font-size: 0.9rem"></p>
-    <span id="loadingSpinner" style="display: none; margin-left: 0.5rem">
-      🔄
-    </span>
-    <div id="result" style="padding: 1rem"></div>
-    <p id="consoling" style="text-align: center; font-size: 0.9rem">
-      Consoling
-    </p>
+
+    <div id="result"></div>
+
+    <script src="app.js"></script>
   </body>
 </html>

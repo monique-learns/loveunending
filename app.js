@@ -1,52 +1,38 @@
 const endpoint =
   "https://script.google.com/macros/s/AKfycbwWDNkCOdAE7rLsuCKFa901Dgnc_0SVkL18hMatTaHnEBnPe-nmkepDERr_t_pJTaaTiw/exec";
-let scannerActive = false;
-let html5QrCode;
 
-function setScanStatus(message) {
-  document.getElementById("scanStatus").innerText = message;
+function setLookupStatus(message) {
+  const statusEl = document.getElementById("lookupStatus");
+  const spinnerEl = document.getElementById("loadingSpinner");
 
-  if (message != "Ticket info loaded.") {
-    document.getElementById("result").innerHTML = "";
-  }
+  statusEl.innerText = message;
 
-  // Show spinner only when looking up ticket
   if (message === "Looking up ticket...") {
+    document.getElementById("result").innerHTML = "";
     spinnerEl.style.display = "inline-block";
   } else {
     spinnerEl.style.display = "none";
   }
 }
 
-function loadCameras() {
-  const select = document.getElementById("cameraSelect");
-  Html5Qrcode.getCameras()
-    .then((devices) => {
-      select.innerHTML = "";
-      devices.forEach((cam) => {
-        const option = document.createElement("option");
-        option.value = cam.id;
-        option.text = cam.label || `Camera ${select.length + 1}`;
-        select.appendChild(option);
-      });
-    })
-    .catch((err) => {
-      setScanStatus("Camera access error.");
-      console.error("Camera error:", err);
-    });
-}
-
 function lookup() {
-  const ticket = document.getElementById("ticketInput").value;
-  setScanStatus("Looking up ticket...");
+  const ticket = document.getElementById("ticketInput").value.trim();
+  if (!ticket) {
+    setLookupStatus("Please enter a ticket number.");
+    return;
+  }
+
+  setLookupStatus("Looking up ticket...");
+
   fetch(`${endpoint}?ticket=${ticket}`)
     .then((res) => res.json())
     .then((data) => {
       if (data.error) {
         document.getElementById("result").innerText = data.error;
-        setScanStatus("Ticket not found.");
+        setLookupStatus("Ticket not found.");
         return;
       }
+
       document.getElementById("result").innerHTML = `
         <p><strong>Name:</strong> ${data.name}</p>
         <p><strong>Status:</strong> ${data.status}</p>
@@ -57,7 +43,11 @@ function lookup() {
           <button onclick="update('${ticket}', 'cancel')">Cancel</button>
         </div>
       `;
-      setScanStatus("Ticket info loaded.");
+      setLookupStatus("Ticket info loaded.");
+    })
+    .catch((err) => {
+      console.error(err);
+      setLookupStatus("Error looking up ticket.");
     });
 }
 
@@ -67,80 +57,3 @@ function update(ticket, action) {
     body: new URLSearchParams({ ticket, action }),
   }).then(() => lookup());
 }
-
-function toggleScanner() {
-  const scanButton = document.getElementById("scanButton");
-  const scannerContainer = document.getElementById("reader");
-  const selectedCameraId = document.getElementById("cameraSelect").value;
-
-  if (scannerActive) {
-    html5QrCode.stop().then(() => {
-      html5QrCode.clear();
-      scannerActive = false;
-      scanButton.textContent = "Scan Barcode";
-      setScanStatus("Scanner stopped.");
-    });
-    return;
-  }
-
-  html5QrCode = new Html5Qrcode("reader");
-
-  html5QrCode
-    .start(
-      selectedCameraId,
-      {
-        fps: 10,
-        qrbox: { width: 250, height: 100 },
-        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-        formatsToSupport: [Html5QrcodeSupportedFormats.CODE_39],
-      },
-      (decodedText) => {
-        document.getElementById("consoling").innerText = "got value";
-        document.getElementById("ticketInput").value = decodedText;
-        lookup();
-        toggleScanner(); // Automatically stop after success
-      },
-      (errorMessage) => {
-        setScanStatus("Scanning...");
-      }
-    )
-    .then(() => {
-      scannerActive = true;
-      scanButton.textContent = "Stop Scanning";
-      setScanStatus("Scanner active...");
-      setTimeout(() => {
-        // ✅ Apply 2x zoom if available
-        const videoElem = document.querySelector("#reader video");
-
-        document.getElementById("consoling").innerText = "Tryign to zoom";
-        if (videoElem && videoElem.srcObject) {
-          const track = videoElem.srcObject.getVideoTracks()[0];
-          const caps = track.getCapabilities?.();
-          if (caps?.zoom) {
-            track
-              .applyConstraints({ advanced: [{ zoom: 2 }] })
-              .then(() => {
-                document.getElementById("consoling").innerText = "Zoomed";
-                document.getElementById("scanStatus").innerText +=
-                  " (Zoom: 2x)";
-              })
-              .catch((err) => {
-                document.getElementById("consoling").innerText = "Cannot zoom";
-                console.warn("Zoom not supported or failed:", err);
-              });
-          }
-        } else {
-          console.warn("Video element or track not ready yet.");
-        }
-      }, 300);
-    })
-    .catch((err) => {
-      setScanStatus("Camera error.");
-      console.error("Start failed:", err);
-    });
-}
-
-window.onload = loadCameras;
-// Allow HTML to call functions
-window.toggleScanner = toggleScanner;
-window.lookup = lookup;

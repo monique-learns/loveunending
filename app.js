@@ -37,11 +37,11 @@ function update(ticket, action) {
 
 function toggleScanner() {
   const scanButton = document.getElementById("scanButton");
-  const scannerContainer = document.getElementById("scanner");
+  const scannerContainer = document.getElementById("reader");
 
   if (scannerActive) {
     html5QrCode.stop().then(() => {
-      scannerContainer.innerHTML = "";
+      html5QrCode.clear();
       scannerActive = false;
       scanButton.textContent = "Scan Barcode";
       document.getElementById("scanStatus").innerText = "Scanner stopped.";
@@ -49,7 +49,7 @@ function toggleScanner() {
     return;
   }
 
-  html5QrCode = new Html5Qrcode("scanner");
+  html5QrCode = new Html5Qrcode("reader");
 
   Html5Qrcode.getCameras().then((cameras) => {
     if (cameras && cameras.length) {
@@ -60,10 +60,10 @@ function toggleScanner() {
             fps: 10,
             qrbox: { width: 250, height: 100 },
           },
-          (code) => {
-            document.getElementById("ticketInput").value = code;
+          (decodedText) => {
+            document.getElementById("ticketInput").value = decodedText;
             lookup();
-            toggleScanner();
+            toggleScanner(); // Stop scanning after successful scan
           },
           (errorMessage) => {
             document.getElementById("scanStatus").innerText = "Scanning...";
@@ -77,10 +77,12 @@ function toggleScanner() {
         .catch((err) => {
           document.getElementById("scanStatus").innerText = "Camera error.";
         });
+    } else {
+      document.getElementById("scanStatus").innerText = "No cameras found.";
     }
   });
 }
 
-// Register functions globally for HTML inline onclick
+// Make functions available for inline buttons in HTML
 window.toggleScanner = toggleScanner;
 window.lookup = lookup;

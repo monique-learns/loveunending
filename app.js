@@ -95,7 +95,7 @@ function lookup() {
             ${
               needsPayment || isBlocked
                 ? "disabled style='opacity: 0.6; cursor: not-allowed;'"
-                : ""
+                : "style='background-color: #5cb85c; color: white;'"
             }
           >
             Admit

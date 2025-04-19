@@ -108,27 +108,31 @@ function toggleScanner() {
       scannerActive = true;
       scanButton.textContent = "Stop Scanning";
       setScanStatus("Scanner active...");
+      setTimeout(() => {
+        // ✅ Apply 2x zoom if available
+        const videoElem = document.querySelector("#reader video");
 
-      // ✅ Apply 2x zoom if available
-      const videoElem = document.querySelector("#reader video");
-
-      document.getElementById("consoling").innerText = "Tryign to zoom";
-      if (videoElem && videoElem.srcObject) {
-        const track = videoElem.srcObject.getVideoTracks()[0];
-        const caps = track.getCapabilities?.();
-        if (caps?.zoom) {
-          track
-            .applyConstraints({ advanced: [{ zoom: 2 }] })
-            .then(() => {
-              document.getElementById("consoling").innerText = "Zoomed";
-              document.getElementById("scanStatus").innerText += " (Zoom: 2x)";
-            })
-            .catch((err) => {
-              document.getElementById("consoling").innerText = "Cannot zoom";
-              console.warn("Zoom not supported or failed:", err);
-            });
+        document.getElementById("consoling").innerText = "Tryign to zoom";
+        if (videoElem && videoElem.srcObject) {
+          const track = videoElem.srcObject.getVideoTracks()[0];
+          const caps = track.getCapabilities?.();
+          if (caps?.zoom) {
+            track
+              .applyConstraints({ advanced: [{ zoom: 2 }] })
+              .then(() => {
+                document.getElementById("consoling").innerText = "Zoomed";
+                document.getElementById("scanStatus").innerText +=
+                  " (Zoom: 2x)";
+              })
+              .catch((err) => {
+                document.getElementById("consoling").innerText = "Cannot zoom";
+                console.warn("Zoom not supported or failed:", err);
+              });
+          }
+        } else {
+          console.warn("Video element or track not ready yet.");
         }
-      }
+      }, 300);
     })
     .catch((err) => {
       setScanStatus("Camera error.");

@@ -29,12 +29,10 @@ function loadCameras() {
         option.text = cam.label || `Camera ${select.length + 1}`;
         select.appendChild(option);
       });
-      document.getElementById("consoling").innerText = "Cameras loaded";
     })
     .catch((err) => {
       setScanStatus("Camera access error.");
       console.error("Camera error:", err);
-      document.getElementById("consoling").innerText = "Cameras erroer";
     });
 }
 
@@ -74,7 +72,6 @@ function toggleScanner() {
   const scanButton = document.getElementById("scanButton");
   const scannerContainer = document.getElementById("reader");
   const selectedCameraId = document.getElementById("cameraSelect").value;
-  document.getElementById("consoling").innerText = "Camera selected";
 
   if (scannerActive) {
     html5QrCode.stop().then(() => {
@@ -136,8 +133,6 @@ function toggleScanner() {
     .catch((err) => {
       setScanStatus("Camera error.");
       console.error("Start failed:", err);
-
-      document.getElementById("consoling").innerText = "Strat failed agina";
     });
 }
 

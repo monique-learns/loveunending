@@ -31,7 +31,7 @@ function loadCameras() {
       });
     })
     .catch((err) => {
-      document.getElementById("scanStatus").innerText = "Camera access error.";
+      setScanStatus("Camera access error.");
       console.error("Camera error:", err);
     });
 }
@@ -70,6 +70,7 @@ function update(ticket, action) {
 
 function toggleScanner() {
   const scanButton = document.getElementById("scanButton");
+  const scannerContainer = document.getElementById("reader");
   const selectedCameraId = document.getElementById("cameraSelect").value;
 
   if (scannerActive) {
@@ -104,16 +105,18 @@ function toggleScanner() {
       (decodedText) => {
         document.getElementById("ticketInput").value = decodedText;
         lookup();
-        toggleScanner(); // Auto-stop after scan
+        toggleScanner(); // Automatically stop after success
       },
-      () => setScanStatus("Scanning...")
+      (errorMessage) => {
+        setScanStatus("Scanning...");
+      }
     )
     .then(() => {
       scannerActive = true;
       scanButton.textContent = "Stop Scanning";
       setScanStatus("Scanner active...");
 
-      // Zoom in if supported
+      // ✅ Apply 2x zoom if available
       const videoElem = document.querySelector("#reader video");
       if (videoElem && videoElem.srcObject) {
         const track = videoElem.srcObject.getVideoTracks()[0];
@@ -122,10 +125,10 @@ function toggleScanner() {
           track
             .applyConstraints({ advanced: [{ zoom: 2 }] })
             .then(() => {
-              setScanStatus("Scanner active... (Zoom: 2x)");
+              document.getElementById("scanStatus").innerText += " (Zoom: 2x)";
             })
             .catch((err) => {
-              console.warn("Zoom failed:", err);
+              console.warn("Zoom not supported or failed:", err);
             });
         }
       }
@@ -137,7 +140,6 @@ function toggleScanner() {
 }
 
 window.onload = loadCameras;
-
 // Allow HTML to call functions
 window.toggleScanner = toggleScanner;
 window.lookup = lookup;

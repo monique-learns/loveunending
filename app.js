@@ -70,7 +70,7 @@ function toggleScanner() {
       return;
     }
 
-    const camId = cameras[0].id; // Use the first camera available
+    const camId = cameras[0].id;
 
     html5QrCode
       .start(
@@ -92,7 +92,7 @@ function toggleScanner() {
         (decodedText) => {
           document.getElementById("ticketInput").value = decodedText;
           lookup();
-          toggleScanner(); // Stop scanning after success
+          toggleScanner(); // Stop after successful scan
         },
         (errorMessage) => {
           document.getElementById("scanStatus").innerText = "Scanning...";
@@ -103,18 +103,24 @@ function toggleScanner() {
         scanButton.textContent = "Stop Scanning";
         document.getElementById("scanStatus").innerText = "Scanner active...";
 
-        // Apply fixed 2x zoom
-        const track = html5QrCode.getRunningTrack();
-        const caps = track.getCapabilities();
-        if (caps.zoom) {
-          track
-            .applyConstraints({ advanced: [{ zoom: 2 }] })
-            .then(() => {
-              document.getElementById("scanStatus").innerText += " (Zoom: 2x)";
-            })
-            .catch((err) => {
-              console.warn("Zoom not supported:", err);
-            });
+        // ✅ Apply zoom using MediaStream API
+        const videoElem = document.querySelector("#reader video");
+        if (videoElem && videoElem.srcObject) {
+          const track = videoElem.srcObject.getVideoTracks()[0];
+          const capabilities = track.getCapabilities?.();
+          if (capabilities && capabilities.zoom) {
+            track
+              .applyConstraints({ advanced: [{ zoom: 2 }] })
+              .then(() => {
+                document.getElementById("scanStatus").innerText +=
+                  " (Zoom: 2x)";
+              })
+              .catch((err) => {
+                console.warn("Zoom not supported or failed:", err);
+              });
+          } else {
+            console.warn("Zoom capability not available.");
+          }
         }
       })
       .catch((err) => {

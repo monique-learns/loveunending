@@ -114,9 +114,8 @@ function toggleScanner() {
         toggleScanner(); // Automatically stop after success
       },
       (errorMessage) => {
-        setScanStatus("Scanning...");
-
         document.getElementById("consoling").innerText = "start errored";
+        setScanStatus("Scanning...");
       }
     )
     .then(() => {
@@ -126,6 +125,8 @@ function toggleScanner() {
 
       // ✅ Apply 2x zoom if available
       const videoElem = document.querySelector("#reader video");
+
+      document.getElementById("consoling").innerText = "Tryign to zoom";
       if (videoElem && videoElem.srcObject) {
         const track = videoElem.srcObject.getVideoTracks()[0];
         const caps = track.getCapabilities?.();

@@ -3,6 +3,19 @@ const endpoint =
 let scannerActive = false;
 let html5QrCode;
 
+function loadCameras() {
+  const select = document.getElementById("cameraSelect");
+  Html5Qrcode.getCameras().then((devices) => {
+    select.innerHTML = "";
+    devices.forEach((cam) => {
+      const option = document.createElement("option");
+      option.value = cam.id;
+      option.text = cam.label || `Camera ${select.length + 1}`;
+      select.appendChild(option);
+    });
+  });
+}
+
 function lookup() {
   const ticket = document.getElementById("ticketInput").value;
   document.getElementById("scanStatus").innerText = "Looking up ticket...";
@@ -38,6 +51,7 @@ function update(ticket, action) {
 function toggleScanner() {
   const scanButton = document.getElementById("scanButton");
   const scannerContainer = document.getElementById("reader");
+  const cameraId = document.getElementById("cameraSelect").value;
 
   if (scannerActive) {
     html5QrCode.stop().then(() => {
@@ -51,40 +65,40 @@ function toggleScanner() {
 
   html5QrCode = new Html5Qrcode("reader");
 
-  Html5Qrcode.getCameras().then((cameras) => {
-    if (cameras && cameras.length) {
-      html5QrCode
-        .start(
-          { facingMode: "environment" },
-          {
-            fps: 10,
-            qrbox: { width: 250, height: 250 },
-            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-            formatsToSupport: [Html5QrcodeSupportedFormats.CODE_39],
-          },
-          (decodedText) => {
-            document.getElementById("ticketInput").value = decodedText;
-            lookup();
-            toggleScanner(); // Stop scanning after successful scan
-          },
-          (errorMessage) => {
-            document.getElementById("scanStatus").innerText = "Scanning...";
-          }
-        )
-        .then(() => {
-          scannerActive = true;
-          scanButton.textContent = "Stop Scanning";
-          document.getElementById("scanStatus").innerText = "Scanner active...";
-        })
-        .catch((err) => {
-          document.getElementById("scanStatus").innerText = "Camera error.";
-        });
-    } else {
-      document.getElementById("scanStatus").innerText = "No cameras found.";
-    }
-  });
+  html5QrCode
+    .start(
+      cameraId,
+      {
+        fps: 10,
+        qrbox: { width: 250, height: 100 },
+        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+        ],
+      },
+      (decodedText) => {
+        document.getElementById("ticketInput").value = decodedText;
+        lookup();
+        toggleScanner(); // stop on success
+      },
+      (errorMessage) => {
+        document.getElementById("scanStatus").innerText = "Scanning...";
+      }
+    )
+    .then(() => {
+      scannerActive = true;
+      scanButton.textContent = "Stop Scanning";
+      document.getElementById("scanStatus").innerText = "Scanner active...";
+    })
+    .catch((err) => {
+      document.getElementById("scanStatus").innerText = "Camera error.";
+    });
 }
 
-// Make functions available for inline buttons in HTML
+// Load camera options on page load
+window.onload = loadCameras;
+
+// Allow HTML to call functions
 window.toggleScanner = toggleScanner;
 window.lookup = lookup;

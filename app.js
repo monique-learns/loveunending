@@ -1,56 +1,146 @@
 const endpoint =
-  "https://script.google.com/macros/s/AKfycbwWDNkCOdAE7rLsuCKFa901Dgnc_0SVkL18hMatTaHnEBnPe-nmkepDERr_t_pJTaaTiw/exec";
-
+  "https://script.google.com/macros/s/AKfycbx0BC7Ngr7tBknjnbAG3m5kj_PqCSi02IPjBxsCHVKvS2U0xxl_eYtMTcC2YcrD_LR8gA/exec";
 function setLookupStatus(message) {
+  const statusContainer = document.getElementById("statusContainer");
+  const statusEl = document.getElementById("lookupStatus");
   const spinnerEl = document.getElementById("loadingSpinner");
 
-  if (message === "Looking up ticket...") {
-    document.getElementById("result").innerHTML = "";
+  if (message === "Looking for Ticket...") {
+    statusContainer.style.display = "block";
     spinnerEl.style.display = "inline-block";
+    statusEl.innerText = message;
   } else {
+    statusContainer.style.display = "none";
     spinnerEl.style.display = "none";
+    statusEl.innerText = "";
   }
 }
 
 function lookup() {
   const ticket = document.getElementById("ticketInput").value.trim();
+  const resultContainer = document.getElementById("resultContainer");
+  const resultEl = document.getElementById("result");
+
   if (!ticket) {
     alert("Please enter a ticket number.");
     return;
   }
 
-  setLookupStatus("Looking up ticket...");
+  setLookupStatus("Looking for Ticket...");
+  resultContainer.style.display = "none";
 
   fetch(`${endpoint}?ticket=${ticket}`)
     .then((res) => res.json())
     .then((data) => {
+      resultContainer.style.display = "block";
+      setLookupStatus("");
+
       if (data.error) {
-        document.getElementById("result").innerText = data.error;
-      } else {
-        document.getElementById("result").innerHTML = `
-          <p><strong>Name:</strong> ${data.name}</p>
-          <p><strong>Status:</strong> ${data.status}</p>
-          <p><strong>Admitted:</strong> ${data.admitted}</p>
-          <div style="margin-top: 1rem;">
-            <button onclick="update('${ticket}', 'pay')">Mark as Paid</button>
-            <button onclick="update('${ticket}', 'admit')">Admit</button>
-            <button onclick="update('${ticket}', 'cancel')">Cancel</button>
-          </div>
-        `;
+        resultEl.innerText = data.error;
+        return;
       }
 
-      setLookupStatus("done");
+      const {
+        name: responsible,
+        type,
+        cost,
+        status,
+        admitted,
+        ticketNumber,
+      } = data;
+
+      const admittedFlag = admitted === "true" || admitted === true;
+      const needsPayment =
+        status === "NOT PAID" ||
+        status === "RESERVED - ask for payment" ||
+        status === "RETURNED" ||
+        status === "AVAILABLE";
+
+      const warningMessage = admittedFlag
+        ? `<p style="color: red; font-weight: bold;">This ticket has already been admitted.</p>`
+        : "";
+
+      const admitButton = `
+        <button onclick="update('${ticketNumber}', 'admit')"
+          ${
+            needsPayment
+              ? "disabled style='opacity: 0.6; cursor: not-allowed;'"
+              : ""
+          }
+        >
+          Admit
+        </button>
+      `;
+
+      const payButton = `
+        <button onclick="update('${ticketNumber}', 'pay')" 
+          style="${
+            needsPayment ? "background-color: #d9534f; color: white;" : ""
+          }"
+        >
+          Mark as Paid
+        </button>
+      `;
+
+      const returnButton = `
+        <button onclick="update('${ticketNumber}', 'return')">
+          Return Ticket
+        </button>
+      `;
+
+      resultEl.innerHTML = `
+        <p><strong>Ticket Number:</strong> ${ticketNumber}</p>
+        <p><strong>Responsible:</strong> ${responsible}</p>
+        <p><strong>Type:</strong> ${type}</p>
+        <p><strong>Cost:</strong> ${cost}</p>
+        <p><strong>Status:</strong> ${status}</p>
+        <p><strong>Admitted:</strong> ${admittedFlag ? "Yes" : "No"}</p>
+        ${warningMessage}
+        <div style="margin-top: 1rem;">
+          ${payButton}
+          ${admitButton}
+          ${returnButton}
+        </div>
+      `;
     })
     .catch((err) => {
       console.error(err);
-      document.getElementById("result").innerText = "Error looking up ticket.";
-      setLookupStatus("done");
+      resultEl.innerText = "Error looking up ticket.";
+      resultContainer.style.display = "block";
+      setLookupStatus("");
     });
 }
 
 function update(ticket, action) {
+  const resultContainer = document.getElementById("resultContainer");
+  const resultEl = document.getElementById("result");
+
+  setLookupStatus("Looking for Ticket...");
+  resultContainer.style.display = "none";
+
   fetch(endpoint, {
     method: "POST",
     body: new URLSearchParams({ ticket, action }),
-  }).then(() => lookup());
+  })
+    .then((res) => res.text())
+    .then((responseText) => {
+      if (responseText.includes("Cannot admit ticket")) {
+        alert(responseText);
+        lookup(); // still show the current result again
+      } else {
+        if (action === "admit" || action === "return") {
+          resultEl.innerHTML = "";
+          resultContainer.style.display = "none";
+        } else {
+          lookup(); // For 'pay', re-fetch the result
+        }
+      }
+      setLookupStatus("");
+    })
+    .catch((err) => {
+      console.error(err);
+      resultEl.innerText = "Error updating ticket.";
+      resultContainer.style.display = "block";
+      setLookupStatus("");
+    });
 }

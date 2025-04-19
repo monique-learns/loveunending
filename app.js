@@ -6,7 +6,7 @@ let html5QrCode;
 function setScanStatus(message) {
   document.getElementById("scanStatus").innerText = message;
 
-  if (clearStates != "Ticket info loaded.") {
+  if (message != "Ticket info loaded.") {
     document.getElementById("result").innerHTML = "";
   }
 

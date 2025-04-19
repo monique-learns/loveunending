@@ -11,9 +11,21 @@
       defer
     ></script>
     <script src="app.js" defer></script>
+    <style>
+      #reader__scan_region > div {
+        border: 2px solid white;
+        border-radius: 8px;
+        transition: border-color 0.3s ease;
+      }
+
+      /* Add a success state */
+      .scan-success {
+        border-color: green !important;
+      }
+    </style>
   </head>
   <body>
-    <h1 style="text-align: center">Scan or Enter Ticket 1.22</h1>
+    <h1 style="text-align: center">Scan or Enter Ticket 1.23</h1>
     <div style="text-align: center; margin: 1rem">
       <input
         type="text"
@@ -28,10 +40,8 @@
         >
           Check Ticket
         </button>
-        <select
-          id="cameraSelect"
-          style="margin-bottom: 1rem; font-size: 1rem; padding: 0.4rem"
-        ></select>
+      </div>
+      <div style="margin-top: 1rem">
         <button
           onclick="toggleScanner()"
           style="padding: 0.5rem 1rem; font-size: 1rem"
@@ -41,10 +51,24 @@
         </button>
       </div>
     </div>
-    <div id="reader" style="width: 100%; max-width: 280px"></div>
+    <div
+      id="reader"
+      style="
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        max-width: 280px;
+        margin: 1rem auto;
+        position: relative;
+      "
+    ></div>
     <p id="scanStatus" style="text-align: center; font-size: 0.9rem">
       Waiting for scan...
     </p>
+    <span id="loadingSpinner" style="display: none; margin-left: 0.5rem">
+      🔄
+    </span>
     <div id="result" style="padding: 1rem"></div>
   </body>
 </html>

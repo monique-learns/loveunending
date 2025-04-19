@@ -3,34 +3,6 @@ const endpoint =
 let scannerActive = false;
 let html5QrCode;
 
-function loadCameras() {
-  const select = document.getElementById("cameraSelect");
-  if (!select) {
-    console.error("Camera select element not found.");
-    return;
-  }
-
-  Html5Qrcode.getCameras()
-    .then((devices) => {
-      console.log("Cameras found:", devices);
-      if (!devices.length) {
-        document.getElementById("scanStatus").innerText = "No cameras found.";
-        return;
-      }
-      devices.forEach((cam) => {
-        const option = document.createElement("option");
-        option.value = cam.id;
-        option.text = cam.label || `Camera ${select.length + 1}`;
-        select.appendChild(option);
-      });
-    })
-    .catch((err) => {
-      console.error("Error getting cameras:", err);
-      document.getElementById("scanStatus").innerText =
-        "Camera access denied or not available.";
-    });
-}
-
 function lookup() {
   const ticket = document.getElementById("ticketInput").value;
   document.getElementById("scanStatus").innerText = "Looking up ticket...";
@@ -66,7 +38,6 @@ function update(ticket, action) {
 function toggleScanner() {
   const scanButton = document.getElementById("scanButton");
   const scannerContainer = document.getElementById("reader");
-  const cameraId = document.getElementById("cameraSelect").value;
 
   if (scannerActive) {
     html5QrCode.stop().then(() => {
@@ -80,39 +51,65 @@ function toggleScanner() {
 
   html5QrCode = new Html5Qrcode("reader");
 
-  html5QrCode
-    .start(
-      cameraId,
-      {
-        fps: 10,
-        qrbox: { width: 250, height: 100 },
-        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-        formatsToSupport: [
-          Html5QrcodeSupportedFormats.CODE_128,
-          Html5QrcodeSupportedFormats.CODE_39,
-        ],
-      },
-      (decodedText) => {
-        document.getElementById("ticketInput").value = decodedText;
-        lookup();
-        toggleScanner(); // stop on success
-      },
-      (errorMessage) => {
-        document.getElementById("scanStatus").innerText = "Scanning...";
-      }
-    )
-    .then(() => {
-      scannerActive = true;
-      scanButton.textContent = "Stop Scanning";
-      document.getElementById("scanStatus").innerText = "Scanner active...";
-    })
-    .catch((err) => {
-      document.getElementById("scanStatus").innerText = "Camera error.";
-    });
-}
+  Html5Qrcode.getCameras().then((cameras) => {
+    if (!cameras.length) {
+      document.getElementById("scanStatus").innerText = "No camera found.";
+      return;
+    }
 
-// Load camera options on page load
-window.onload = loadCameras;
+    const camId = cameras[0].id; // Use the first camera available
+
+    html5QrCode
+      .start(
+        camId,
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 150 },
+          supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.ITF,
+          ],
+        },
+        (decodedText) => {
+          document.getElementById("ticketInput").value = decodedText;
+          lookup();
+          toggleScanner(); // Stop scanning after success
+        },
+        (errorMessage) => {
+          document.getElementById("scanStatus").innerText = "Scanning...";
+        }
+      )
+      .then(() => {
+        scannerActive = true;
+        scanButton.textContent = "Stop Scanning";
+        document.getElementById("scanStatus").innerText = "Scanner active...";
+
+        // Apply fixed 2x zoom
+        const track = html5QrCode.getRunningTrack();
+        const caps = track.getCapabilities();
+        if (caps.zoom) {
+          track
+            .applyConstraints({ advanced: [{ zoom: 2 }] })
+            .then(() => {
+              document.getElementById("scanStatus").innerText += " (Zoom: 2x)";
+            })
+            .catch((err) => {
+              console.warn("Zoom not supported:", err);
+            });
+        }
+      })
+      .catch((err) => {
+        document.getElementById("scanStatus").innerText = "Camera error.";
+        console.error(err);
+      });
+  });
+}
 
 // Allow HTML to call functions
 window.toggleScanner = toggleScanner;

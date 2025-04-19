@@ -18,6 +18,24 @@ function setScanStatus(message) {
   }
 }
 
+function loadCameras() {
+  const select = document.getElementById("cameraSelect");
+  Html5Qrcode.getCameras()
+    .then((devices) => {
+      select.innerHTML = "";
+      devices.forEach((cam) => {
+        const option = document.createElement("option");
+        option.value = cam.id;
+        option.text = cam.label || `Camera ${select.length + 1}`;
+        select.appendChild(option);
+      });
+    })
+    .catch((err) => {
+      document.getElementById("scanStatus").innerText = "Camera access error.";
+      console.error("Camera error:", err);
+    });
+}
+
 function lookup() {
   const ticket = document.getElementById("ticketInput").value;
   setScanStatus("Looking up ticket...");
@@ -52,7 +70,7 @@ function update(ticket, action) {
 
 function toggleScanner() {
   const scanButton = document.getElementById("scanButton");
-  const scannerContainer = document.getElementById("reader");
+  const selectedCameraId = document.getElementById("cameraSelect").value;
 
   if (scannerActive) {
     html5QrCode.stop().then(() => {
@@ -68,34 +86,34 @@ function toggleScanner() {
 
   html5QrCode
     .start(
-      { facingMode: { exact: "environment" } },
+      selectedCameraId,
       {
         fps: 10,
         qrbox: { width: 250, height: 100 },
         supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-        formatsToSupport: [Html5QrcodeSupportedFormats.CODE_39],
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
+          Html5QrcodeSupportedFormats.ITF,
+        ],
       },
       (decodedText) => {
         document.getElementById("ticketInput").value = decodedText;
         lookup();
-
-        const scanBox = document.querySelector("#reader__scan_region > div");
-        if (scanBox) {
-          scanBox.classList.add("scan-success");
-        }
-
-        toggleScanner(); // Automatically stop after success
+        toggleScanner(); // Auto-stop after scan
       },
-      (errorMessage) => {
-        setScanStatus("Scanning...");
-      }
+      () => setScanStatus("Scanning...")
     )
     .then(() => {
       scannerActive = true;
       scanButton.textContent = "Stop Scanning";
       setScanStatus("Scanner active...");
 
-      // ✅ Apply 2x zoom (if supported)
+      // Zoom in if supported
       const videoElem = document.querySelector("#reader video");
       if (videoElem && videoElem.srcObject) {
         const track = videoElem.srcObject.getVideoTracks()[0];
@@ -104,10 +122,10 @@ function toggleScanner() {
           track
             .applyConstraints({ advanced: [{ zoom: 2 }] })
             .then(() => {
-              setScanStatus(" (Zoom: 2x)");
+              setScanStatus("Scanner active... (Zoom: 2x)");
             })
             .catch((err) => {
-              console.warn("Zoom not supported or failed:", err);
+              console.warn("Zoom failed:", err);
             });
         }
       }

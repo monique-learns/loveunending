@@ -25,7 +25,7 @@
     </style>
   </head>
   <body>
-    <h1 style="text-align: center">Scan or Enter Ticket 1.23</h1>
+    <h1 style="text-align: center">Scan or Enter Ticket 1.24</h1>
     <div style="text-align: center; margin: 1rem">
       <input
         type="text"
@@ -42,6 +42,15 @@
         </button>
       </div>
       <div style="margin-top: 1rem">
+        <select
+          id="cameraSelect"
+          style="
+            margin: 1rem auto;
+            display: block;
+            font-size: 1rem;
+            padding: 0.4rem;
+          "
+        ></select>
         <button
           onclick="toggleScanner()"
           style="padding: 0.5rem 1rem; font-size: 1rem"
@@ -63,9 +72,7 @@
         position: relative;
       "
     ></div>
-    <p id="scanStatus" style="text-align: center; font-size: 0.9rem">
-      Waiting for scan...
-    </p>
+    <p id="scanStatus" style="text-align: center; font-size: 0.9rem"></p>
     <span id="loadingSpinner" style="display: none; margin-left: 0.5rem">
       🔄
     </span>

@@ -136,6 +136,8 @@ function toggleScanner() {
     });
 }
 
+window.onload = loadCameras;
+
 // Allow HTML to call functions
 window.toggleScanner = toggleScanner;
 window.lookup = lookup;
